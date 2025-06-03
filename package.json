@@ -1,0 +1,14 @@
+{
+  "name": "irmasgelli",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev":    "http-server . -c-1 -p 8080 --ssl --cert localhost.pem --key localhost-key.pem",
+    "build": "echo \"✔️  No build step needed for CDN approach\"",
+    "deploy": "gh-pages -d ."
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "gh-pages":    "^5.0.0"
+  }
+}

@@ -1,0 +1,142 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="importmap">
+    {
+      "imports": {
+	"three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+	"three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+	"mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+      }
+    }
+    </script>
+    <script type="module">
+      import * as THREE from 'three';
+      import { MindARThree } from 'mindar-image-three';
+
+      let mindarThree, anchor, plane;
+      let touchEnabled = false;
+
+      const requestCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach(track => track.stop());
+          return true;
+        } catch (error) {
+          alert('Camera permission is required for AR functionality');
+          return false;
+        }
+      };
+
+      const showInstructions1 = () => {
+        const instr1 = document.getElementById('instructions1');
+        instr1.style.display = 'flex';
+        setTimeout(() => {
+          instr1.style.display = 'none';
+          startAR();
+        }, 3000);
+      };
+
+      const showInstructions2 = () => {
+        document.getElementById('instructions2').style.display = 'flex';
+      };
+
+      const startAR = async () => {
+        mindarThree = new MindARThree({
+          container: document.querySelector('#container'),
+          imageTargetSrc: 'public/targets.mind'
+        });
+        const { renderer, scene, camera } = mindarThree;
+        anchor = mindarThree.addAnchor(0);
+
+        const geometry = new THREE.PlaneGeometry(1, 0.3);
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.font = '48px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('ANIMAÇÃO PLACEHOLDER', 256, 128);
+        const texture = new THREE.CanvasTexture(canvas);
+        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+        plane = new THREE.Mesh(geometry, material);
+        plane.visible = false;
+        anchor.group.add(plane);
+
+        anchor.onTargetFound = () => {
+          plane.visible = true;
+          setTimeout(() => {
+            showInstructions2();
+            touchEnabled = true;
+          }, 5000);
+        };
+        anchor.onTargetLost = () => {
+          plane.visible = false;
+          document.getElementById('instructions2').style.display = 'none';
+          touchEnabled = false;
+        };
+
+        await mindarThree.start();
+        renderer.setAnimationLoop(() => renderer.render(scene, camera));
+      };
+
+      const handleTouch = () => {
+        if (touchEnabled) window.open('https://www.google.com', '_blank');
+      };
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('touchstart', handleTouch);
+        document.addEventListener('click', handleTouch);
+        if (await requestCameraPermission()) showInstructions1();
+      });
+    </script>
+    <style>
+      body {
+        margin: 0;
+            }
+            #container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+            }
+            #control {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 2;
+      }
+      #instructions1, #instructions2 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+      }
+      .instruction-text {
+        color: white;
+        font-size: 2rem;
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="instructions1">
+      <div class="instruction-text">Aponte para a obra</div>
+    </div>
+    <div id="instructions2">
+      <div class="instruction-text">Toque aqui</div>
+    </div>
+    <div id="container">
+    </div>
+  </body>
+</html>
