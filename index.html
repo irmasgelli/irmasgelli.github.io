@@ -28,17 +28,32 @@
         }
       };
 
-      const showInstructions1 = () => {
-        const instr1 = document.getElementById('instructions1');
-        instr1.style.display = 'flex';
+      const showLogo = () => {
+        const logo = document.getElementById('logoOverlay');
+        logo.style.display = 'flex';
         setTimeout(() => {
-          instr1.style.display = 'none';
-          startAR();
-        }, 3000);
+          logo.style.display = 'none';
+          showInstructions1();
+        }, 2000);
       };
 
-      const showInstructions2 = () => {
-        document.getElementById('instructions2').style.display = 'flex';
+      const showInstructions1 = () => {
+        const instr1 = document.getElementById('instructions1');
+        const textEl = document.getElementById('instructions1-text');
+        const text = 'APONTE A CÂMERA PARA OBRA';
+        instr1.style.display = 'flex';
+        textEl.textContent = '';
+        let idx = 0;
+        const typer = setInterval(() => {
+          textEl.textContent += text[idx++];
+          if (idx === text.length) {
+            clearInterval(typer);
+            setTimeout(() => {
+              instr1.style.display = 'none';
+              startAR();
+            }, 2000);
+          }
+        }, 100);
       };
 
       const startAR = async () => {
@@ -48,49 +63,37 @@
         });
         const { renderer, scene, camera } = mindarThree;
         anchor = mindarThree.addAnchor(0);
-
-        const geometry = new THREE.PlaneGeometry(1, 0.3);
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 256;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.font = '48px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('ANIMAÇÃO PLACEHOLDER', 256, 128);
-        const texture = new THREE.CanvasTexture(canvas);
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-        plane = new THREE.Mesh(geometry, material);
-        plane.visible = false;
         anchor.group.add(plane);
-
         anchor.onTargetFound = () => {
-          plane.visible = true;
-          setTimeout(() => {
-            showInstructions2();
-            touchEnabled = true;
-          }, 5000);
+          console.log('Target found');
+          window.open('https://open.spotify.com/intl-pt/track/0fdnuaaMLkAJb3czxnwKxh?si=9cd3cbab878e46fb', '_blank');
         };
         anchor.onTargetLost = () => {
-          plane.visible = false;
-          document.getElementById('instructions2').style.display = 'none';
-          touchEnabled = false;
+
         };
 
         await mindarThree.start();
+
         renderer.setAnimationLoop(() => renderer.render(scene, camera));
       };
 
       const handleTouch = () => {
-        if (touchEnabled) window.open('https://www.google.com', '_blank');
+        //if (touchEnabled) window.open('https://open.spotify.com/intl-pt/track/0fdnuaaMLkAJb3czxnwKxh?si=9cd3cbab878e46fb', '_blank');
       };
 
       document.addEventListener('DOMContentLoaded', async () => {
         document.addEventListener('touchstart', handleTouch);
         document.addEventListener('click', handleTouch);
-        if (await requestCameraPermission()) showInstructions1();
+        if (await requestCameraPermission()) showLogo();
       });
     </script>
     <style>
+      /* Load custom font */
+      @font-face {
+        font-family: 'CustomFont';
+        src: url('public/font.otf') format('opentype');
+      }
+
       body {
         margin: 0;
             }
@@ -106,35 +109,39 @@
         left: 0;
         z-index: 2;
       }
-      #instructions1, #instructions2 {
+      #logoOverlay, #instructions1, #instructions2 {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.8);
         display: none;
         justify-content: center;
         align-items: center;
+        background: rgba(0, 0, 0, 1);
         z-index: 10;
       }
+      #logoOverlay img {
+        max-width: 50%;
+        max-height: 50%;
+      }
       .instruction-text {
+        font-family: 'CustomFont', sans-serif;
+        white-space: pre-wrap;
         color: white;
         font-size: 2rem;
         text-align: center;
         padding: 20px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        backdrop-filter: blur(10px);
+        background: rgba(0, 0, 0, 1);
       }
     </style>
   </head>
   <body>
-    <div id="instructions1">
-      <div class="instruction-text">Aponte para a obra</div>
+    <div id="logoOverlay">
+      <img src="public/logo.png" alt="Logo">
     </div>
-    <div id="instructions2">
-      <div class="instruction-text">Toque aqui</div>
+    <div id="instructions1">
+      <div class="instruction-text"><span id="instructions1-text"></span></div>
     </div>
     <div id="container">
     </div>
