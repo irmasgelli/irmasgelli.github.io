@@ -16,6 +16,7 @@
 
       let mindarThree, anchor, plane;
       let touchEnabled = false;
+      let targetFound = false;
 
       const requestCameraPermission = async () => {
         try {
@@ -56,20 +57,34 @@
         }, 100);
       };
 
+      const showInstructions2 = () => {
+        const instr2 = document.getElementById('instructions2');
+        instr2.style.display = 'flex';
+      };
+
+      const hideInstructions2 = () => {
+        const instr2 = document.getElementById('instructions2');
+        instr2.style.display = 'none';
+      };
+
       const startAR = async () => {
         mindarThree = new MindARThree({
           container: document.querySelector('#container'),
-          imageTargetSrc: 'public/targets.mind'
+          imageTargetSrc: 'public/targets1.mind'
         });
         const { renderer, scene, camera } = mindarThree;
         anchor = mindarThree.addAnchor(0);
         anchor.group.add(plane);
         anchor.onTargetFound = () => {
           console.log('Target found');
-          window.open('https://open.spotify.com/intl-pt/track/0fdnuaaMLkAJb3czxnwKxh?si=9cd3cbab878e46fb', '_blank');
+          targetFound = true;
+          touchEnabled = true;
+          showInstructions2();
         };
         anchor.onTargetLost = () => {
-
+          targetFound = false;
+          touchEnabled = false;
+          hideInstructions2();
         };
 
         await mindarThree.start();
@@ -78,7 +93,9 @@
       };
 
       const handleTouch = () => {
-        //if (touchEnabled) window.open('https://open.spotify.com/intl-pt/track/0fdnuaaMLkAJb3czxnwKxh?si=9cd3cbab878e46fb', '_blank');
+        if (touchEnabled && targetFound) {
+          window.open('https://open.spotify.com/intl-pt/track/0fdnuaaMLkAJb3czxnwKxh?si=9cd3cbab878e46fb', '_blank');
+        }
       };
 
       document.addEventListener('DOMContentLoaded', async () => {
@@ -137,6 +154,15 @@
       #instructions1 .instruction-text {
         font-size: 1.1rem;
       }
+      #instructions2 .instruction-text {
+        font-size: 1.3rem;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { opacity: 0.8; }
+        50% { opacity: 1; }
+        100% { opacity: 0.8; }
+      }
     </style>
   </head>
   <body>
@@ -145,6 +171,9 @@
     </div>
     <div id="instructions1">
       <div class="instruction-text"><span id="instructions1-text"></span></div>
+    </div>
+    <div id="instructions2">
+      <div class="instruction-text">TOQUE NA TELA PARA<br>OUVIR A MÚSICA</div>
     </div>
     <div id="container">
     </div>
